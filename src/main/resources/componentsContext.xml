@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://www.springframework.org/schema/beans" 
+  xmlns:context="http://www.springframework.org/schema/context" 
+  xmlns:tx="http://www.springframework.org/schema/tx"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans 
+     http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+     http://www.springframework.org/schema/context
+     http://www.springframework.org/schema/context/spring-context-4.3.xsd
+     http://www.springframework.org/schema/tx
+     http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+    <bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+    <property name="locations">
+        <list>
+            <value>classpath:jdbc.properties</value>
+        </list>
+    </property>
+    </bean>
+    	<!--①：规约所有进行扫描的类，以完成Bean创建和自动依赖注入的功能-->
+ 	<bean class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter"/>
+ 	<context:component-scan base-package="com.yc.xfm">
+ 	 <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan> 
+ 	
+ 	<context:annotation-config />
+<!-- 	<tx:annotation-driven transaction-manager="txManager" />  -->
+	<tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true"/>
+	<bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter" />   
+	<!-- hibernate配置 -->
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<property name="packagesToScan" value="com.yc.xfm.entity"/>
+		<property name="dataSource">
+	  		<ref bean="dataSource"/>
+		</property>
+		<property name="PhysicalNamingStrategy" ref="namingStrategy" />
+       	<property name="hibernateProperties"> 
+            <props> 
+                <prop key="hibernate.dialect"> 
+                   org.hibernate.dialect.MySQL5Dialect
+                </prop> 
+                <prop key="hibernate.jdbc.use_scrollable_resultset">false</prop>
+                <!-- 外键关联深度 -->
+                <prop key="hibernate.max_fetch_depth">1</prop>
+<!--                	<prop key="hibernate.show_sql">true</prop>  -->
+<!--                	<prop key="hibernate.format_sql">true</prop>  -->
+        		<prop key="hibernate.show_sql">false</prop> 
+               	<prop key="hibernate.format_sql">false</prop> 
+				<!-- <prop key="hibernate.hbm2ddl.auto">update</prop> --> 
+                <prop key="hibernate.current_session_context_class">org.springframework.orm.hibernate5.SpringSessionContext</prop> 
+                <!-- hibernate cache --> 
+                <prop key="hibernate.cache.provider_class">net.sf.ehcache.hibernate.EhCacheProvider</prop> 
+                <prop key="hibernate.cache.region.factory_class">org.hibernate.cache.ehcache.EhCacheRegionFactory</prop> 
+                 <prop key="javax.persistence.validation.mode">none</prop>
+                <!-- hibernate search 
+                <prop key="hibernate.search.default.directory_provider">org.hibernate.search.store.FSDirectoryProvider</prop> 
+                <prop key="hibernate.search.default.indexBase">E:\indexed</prop> --> 
+            </props> 
+        </property> 
+	</bean>
+	<bean id="namingStrategy" class="com.yc.core.spring.PhysicalNamingStrategyImprove"/>
+	<bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager" >
+		<property name="sessionFactory"><ref bean="sessionFactory"/></property>
+	</bean>
+	
+	<!-- 时间任务调度  格式: [秒] [分] [小时] [日] [月] [周] [年] 
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">  
+      <property name="triggers">  
+        <list>  
+          <ref local="cronTrigger"/> 
+        </list>  
+      </property>  
+    </bean>  
+	<bean id="threadQuartz" class="com.wx.core.quartz.ThreadQuartz"></bean>
+    <bean id="jobDetail"  class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">  
+        <property name="targetObject">  
+              <ref local="threadQuartz"/>
+        </property>
+        <property name="concurrent"><value>false</value></property>
+        <property name="targetMethod">
+        	<value>work</value>
+        </property>  
+    </bean>  
+    <bean id="cronTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		 <property name="jobDetail">
+		  <ref bean="jobDetail"/>
+		 </property>
+		 <property name="cronExpression">
+		  <value>0 * * * * ?</value>
+		 </property>
+	</bean>
+	-->
+	
+</beans>
